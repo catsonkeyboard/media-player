@@ -19,8 +19,8 @@
 1. **代码签名证书**：EV/OV 证书签名 exe（未签名会触发 SmartScreen 警告）。
 2. **分发形态**：MSIX（`msix` pub 包可打包）或 Inno Setup 安装器；
    文件关联需安装器写注册表（`HKCR` ProgID + OpenWith list）。
-3. **优雅退出**：已实现（`flutter_window.cpp` 拦截 WM_CLOSE），CI 的
-   `build-windows` 任务编译验证；真机点击关闭需人工回归一次。
+3. **优雅退出**：已实现（`flutter_window.cpp` 拦截 WM_CLOSE），尚未在
+   Windows 上编译验证；真机首次构建 + 点击关闭需人工回归一次。
 
 ## Android
 
@@ -37,4 +37,4 @@
 
 - 关于页附开源许可声明（media_kit / libmpv / FFmpeg / file_picker / desktop_drop 等）。
 - `docs/technical-design.md` 第 6 节风险表复查。
-- CI（`.github/workflows/ci.yml`）四端构建通过后再打 tag 发布。
+- 建议配置 CI 四端构建通过后再打 tag 发布。

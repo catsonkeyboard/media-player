@@ -94,7 +94,7 @@ flutter test          # 33 tests: playlist, WebDAV, natural sort, models, skip m
 | Platform | Notes |
 | --- | --- |
 | macOS | App Sandbox disabled for direct distribution (VLC-like path access). Restore `com.apple.security.app-sandbox` before App Store release — security-scoped bookmarks take over automatically. `user-selected.read-only` entitlement is kept (file_picker 13 requires the declaration). |
-| Windows | libmpv DLLs bundled automatically; graceful-exit C++ changes are compile-verified by CI (`build-windows` job). |
+| Windows | libmpv DLLs bundled automatically; graceful-exit C++ changes need a Windows machine (or CI) to compile-verify. |
 | Android | `INTERNET` permission declared for release; manifest has `supportsPictureInPicture`. |
 | iOS | Large file picking copies into a temp directory on first open (system behavior). PiP unsupported (see above). |
 
@@ -132,7 +132,6 @@ lib/
 
 - Full design doc (framework/core selection, architecture, risks): [docs/technical-design.md](docs/technical-design.md)
 - Release checklist per platform: [docs/RELEASE.md](docs/RELEASE.md)
-- CI (analyze/test + Android/macOS/Windows build matrix): `.github/workflows/ci.yml`
 
 ## Roadmap
 
