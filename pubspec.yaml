@@ -1,0 +1,37 @@
+name: media_player
+description: 跨平台视频播放器（Windows / macOS / Android / iOS），基于 Flutter + media_kit(libmpv)。
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 播放内核：libmpv（FFmpeg 全格式），四端行为一致
+  media_kit: ^1.1.10
+  media_kit_video: ^1.2.0
+  media_kit_libs_video: ^1.0.0
+
+  # 本地文件/字幕选择
+  file_picker: ^13.1.0
+
+  # 最近播放与进度持久化
+  shared_preferences: ^2.2.0
+
+  # 桌面迷你小窗（画中画）
+  window_manager: ^0.4.0
+  desktop_drop: ^0.8.0
+  volume_controller: ^3.7.1
+  screen_brightness: ^2.1.11
+  xml: ^7.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

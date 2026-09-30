@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 开发期禁用 App Sandbox：历史记录按路径直接播放（与 VLC 等桌面播放器一致）。
+	     user-selected.read-only 是 file_picker 13 硬性校验的声明（不代表开启沙盒）。
+	     上架 App Store 时恢复 com.apple.security.app-sandbox，书签机制会自动生效 -->
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+</dict>
+</plist>
