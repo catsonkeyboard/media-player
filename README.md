@@ -1,12 +1,12 @@
 # media_player
 
-A cross-platform video player for **Windows / macOS / Android / iOS**, built with Flutter + [media_kit](https://pub.dev/packages/media_kit) (libmpv / FFmpeg backend).
+A cross-platform video player for **Windows / macOS / Linux / Android / iOS**, built with Flutter + [media_kit](https://pub.dev/packages/media_kit) (libmpv / FFmpeg backend).
 
-One codebase, one playback core, consistent behavior on all four platforms.
+One codebase, one playback core, consistent behavior on all five platforms.
 
 ## Highlights
 
-- **Plays virtually everything**: MP4 / MKV / AVI / MOV / FLV / WMV / WebM / TS containers; H.264 / H.265 / VP9 / AV1 and more — powered by libmpv with hardware decoding (VideoToolbox / MediaCodec / D3D11VA) and automatic software-decode fallback.
+- **Plays virtually everything**: MP4 / MKV / AVI / MOV / FLV / WMV / WebM / TS containers; H.264 / H.265 / VP9 / AV1 and more — powered by libmpv with hardware decoding (VideoToolbox / MediaCodec / D3D11VA / VA-API) and automatic software-decode fallback.
 - **Library**: recent plays with resume positions, folder-based video library grid, and WebDAV remote sources.
 - **Binge-ready**: natural-order playlist autoplay (EP1 → EP2 → EP10), skip intro/outro markers, chapter navigation.
 - **Deep playback controls**: audio tracks, 10-band equalizer, subtitles (embedded + external + auto-matching), A-B loop, frame stepping, speed control.
@@ -65,6 +65,7 @@ One codebase, one playback core, consistent behavior on all four platforms.
 flutter pub get
 
 # Desktop
+flutter run -d linux
 flutter run -d macos
 flutter run -d windows
 
@@ -73,7 +74,34 @@ flutter run -d <android-device-id>
 flutter run -d <ios-device-id>
 ```
 
-The first build downloads prebuilt libmpv binaries per platform.
+The first build downloads prebuilt libmpv binaries per platform (Linux instead links the system `libmpv` from `libmpv-dev`).
+
+### Linux build & launch
+
+One script builds the release bundle and packages a distributable archive (requires Flutter stable with Dart ≥ 3.13):
+
+```bash
+./scripts/build-linux.sh              # build release + package dist/media-player-<version>-linux-<arch>.tar.gz
+./scripts/build-linux.sh --with-deps  # also install the system toolchain first (Debian/Ubuntu/Mint, needs sudo)
+```
+
+Artifacts:
+
+- `build/linux/<arch>/release/bundle/` — runnable directory on the build machine
+- `dist/media-player-<version>-linux-<arch>.tar.gz` — archive to copy to other machines
+
+Launch:
+
+```bash
+# Dev machine, straight from the build output
+./build/linux/x64/release/bundle/media_player
+
+# Target machine, from the distributed archive
+tar xzf media-player-0.1.0-linux-x64.tar.gz
+./media-player-0.1.0-linux-x64/media_player
+```
+
+Dependencies: build needs `clang cmake ninja-build pkg-config libgtk-3-dev libmpv-dev`; the binary links the **system** `libmpv2` at runtime (not bundled) — on the target machine run `sudo apt install libmpv2`.
 
 ### Debug entry
 
@@ -95,6 +123,7 @@ flutter test          # 33 tests: playlist, WebDAV, natural sort, models, skip m
 | --- | --- |
 | macOS | App Sandbox disabled for direct distribution (VLC-like path access). Restore `com.apple.security.app-sandbox` before App Store release — security-scoped bookmarks take over automatically. `user-selected.read-only` entitlement is kept (file_picker 13 requires the declaration). |
 | Windows | libmpv DLLs bundled automatically; graceful-exit C++ changes need a Windows machine (or CI) to compile-verify. |
+| Linux | GTK desktop build; build and package with `scripts/build-linux.sh` (see the “Linux build & launch” section). Links system `libmpv2` at runtime — not bundled in the archive. |
 | Android | `INTERNET` permission declared for release; manifest has `supportsPictureInPicture`. |
 | iOS | Large file picking copies into a temp directory on first open (system behavior). PiP unsupported (see above). |
 
