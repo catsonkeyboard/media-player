@@ -12,7 +12,7 @@ dependencies:
 
   # 播放内核：libmpv（FFmpeg 全格式），四端行为一致
   media_kit: ^1.1.10
-  media_kit_video: ^1.2.0
+  media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.0
 
   # 本地文件/字幕选择
@@ -27,6 +27,13 @@ dependencies:
   volume_controller: ^3.7.1
   screen_brightness: ^2.1.11
   xml: ^7.1.0
+
+dependency_overrides:
+  # Linux H/W 渲染补丁：EGLDisplay 改从 GDK 获取（修复 Flutter 3.38+ 上
+  # 蓝屏/S/W 回退，media-kit#1404），S/W 兜底改三缓冲防撕裂。
+  # 上游发布修复后移除此覆盖。
+  media_kit_video:
+    path: third_party/media_kit_video
 
 dev_dependencies:
   flutter_test:

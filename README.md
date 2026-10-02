@@ -56,6 +56,7 @@ One codebase, one playback core, consistent behavior on all five platforms.
 - **Mobile gestures**: left half vertical drag = brightness (app-level, restored on exit), right half = volume, long-press = 2x speed
 - **macOS**: Now Playing info + remote commands (play/pause/seek/next/prev via media keys), file association, graceful libmpv shutdown on quit (prevents exit crash)
 - **Windows**: graceful shutdown handshake (same pattern, WM_CLOSE interception)
+- **Linux**: graceful shutdown handshake (same pattern, GTK `delete-event` interception) followed by hard `_exit(0)` — Flutter 3.38+ engine teardown on Linux/Impeller is unstable (slow exit, occasional Mesa use-after-free with large video textures). Video output uses a patched `media_kit_video` (vendored at `third_party/`, wired via `dependency_overrides`): EGL context bootstrapped from the GDK display (media-kit#1404), S/W fallback triple-buffered to prevent tearing. Remove the override once upstream ships the fix.
 - **Picture-in-picture**: Android 8.0+ system PiP; macOS/Windows mini always-on-top window (draggable, restores original bounds on exit); iOS not supported (system PiP requires AVPlayer rendering)
 - Window position/size memory (suspended during mini-window mode)
 
