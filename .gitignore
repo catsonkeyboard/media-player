@@ -52,3 +52,12 @@ app.*.map.json
 
 # Local media samples (large test videos)
 /sample/
+
+# Vendored media_kit_video build artifacts
+# (podspec `make` step downloads/extracts mpv headers during CocoaPods)
+/third_party/media_kit_video/common/darwin/.cache/
+/third_party/media_kit_video/macos/Headers/
+/third_party/media_kit_video/ios/Headers/
+
+# Command Code local state (taste/session data)
+/.commandcode/
