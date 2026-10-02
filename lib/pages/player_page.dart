@@ -573,44 +573,44 @@ class _PlayerPageState extends State<PlayerPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       // 桌面快捷键：空格/方向键/F/S/N/P/Esc
-      body: Focus(
-        autofocus: true,
-        child: CallbackShortcuts(
-          bindings: {
-            const SingleActivator(LogicalKeyboardKey.escape): () {
-              if (_videoFullscreen) {
-                unawaited(_toggleVideoFullscreen());
-              } else {
-                Navigator.of(context).maybePop();
-              }
-            },
-            const SingleActivator(LogicalKeyboardKey.space): () =>
-                unawaited(_togglePlay()),
-            const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
-                unawaited(_seekBy(const Duration(seconds: -10))),
-            const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
-                unawaited(_seekBy(const Duration(seconds: 10))),
-            const SingleActivator(LogicalKeyboardKey.arrowUp): () =>
-                unawaited(_volumeBy(10)),
-            const SingleActivator(LogicalKeyboardKey.arrowDown): () =>
-                unawaited(_volumeBy(-10)),
-            const SingleActivator(LogicalKeyboardKey.keyF): () =>
-                unawaited(_toggleVideoFullscreen()),
-            const SingleActivator(LogicalKeyboardKey.keyS): () =>
-                unawaited(_screenshot()),
-            const SingleActivator(LogicalKeyboardKey.keyN): () =>
-                unawaited(_playNext()),
-            const SingleActivator(LogicalKeyboardKey.keyP): () =>
-                unawaited(_playPrevious()),
-            const SingleActivator(LogicalKeyboardKey.keyA): () =>
-                unawaited(_cycleAbLoop()),
-            const SingleActivator(LogicalKeyboardKey.keyI): () =>
-                unawaited(_toggleStats()),
-            const SingleActivator(LogicalKeyboardKey.period): () =>
-                unawaited(_frameStep(true)),
-            const SingleActivator(LogicalKeyboardKey.comma): () =>
-                unawaited(_frameStep(false)),
+      body: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.escape): () {
+            if (_videoFullscreen) {
+              unawaited(_toggleVideoFullscreen());
+            } else {
+              Navigator.of(context).maybePop();
+            }
           },
+          const SingleActivator(LogicalKeyboardKey.space): () =>
+              unawaited(_togglePlay()),
+          const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
+              unawaited(_seekBy(const Duration(seconds: -10))),
+          const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
+              unawaited(_seekBy(const Duration(seconds: 10))),
+          const SingleActivator(LogicalKeyboardKey.arrowUp): () =>
+              unawaited(_volumeBy(10)),
+          const SingleActivator(LogicalKeyboardKey.arrowDown): () =>
+              unawaited(_volumeBy(-10)),
+          const SingleActivator(LogicalKeyboardKey.keyF): () =>
+              unawaited(_toggleVideoFullscreen()),
+          const SingleActivator(LogicalKeyboardKey.keyS): () =>
+              unawaited(_screenshot()),
+          const SingleActivator(LogicalKeyboardKey.keyN): () =>
+              unawaited(_playNext()),
+          const SingleActivator(LogicalKeyboardKey.keyP): () =>
+              unawaited(_playPrevious()),
+          const SingleActivator(LogicalKeyboardKey.keyA): () =>
+              unawaited(_cycleAbLoop()),
+          const SingleActivator(LogicalKeyboardKey.keyI): () =>
+              unawaited(_toggleStats()),
+          const SingleActivator(LogicalKeyboardKey.period): () =>
+              unawaited(_frameStep(true)),
+          const SingleActivator(LogicalKeyboardKey.comma): () =>
+              unawaited(_frameStep(false)),
+        },
+        child: Focus(
+          autofocus: true,
           child: Stack(
             // Scaffold body 高度是宽松约束：必须强制 expand，
             // 否则 Stack 按非定位子组件（顶部工具行）塌缩，视频被压成一条
