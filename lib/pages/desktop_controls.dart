@@ -35,6 +35,7 @@ class _DesktopVideoControlsState extends State<DesktopVideoControls> {
   bool _scrubbing = false;
   Duration? _scrubPosition;
   Timer? _hideTimer;
+  bool _showVolume = false;
 
   Player get _player => widget.player;
 
@@ -53,8 +54,20 @@ class _DesktopVideoControlsState extends State<DesktopVideoControls> {
   void _restartHideTimer() {
     _hideTimer?.cancel();
     _hideTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _visible = false);
+      // 音量面板打开时不自动隐藏
+      if (!mounted || _showVolume) return;
+      setState(() => _visible = false);
     });
+  }
+
+  void _toggleVolumePanel() {
+    final show = !_showVolume;
+    setState(() => _showVolume = show);
+    if (show) {
+      _hideTimer?.cancel();
+    } else {
+      _restartHideTimer();
+    }
   }
 
   void _showControls() {
@@ -65,7 +78,12 @@ class _DesktopVideoControlsState extends State<DesktopVideoControls> {
 
   void _hideControls() {
     _hideTimer?.cancel();
-    if (mounted) setState(() => _visible = false);
+    if (mounted) {
+      setState(() {
+        _visible = false;
+        _showVolume = false;
+      });
+    }
   }
 
   Future<void> _togglePlay() async {
@@ -130,10 +148,22 @@ class _DesktopVideoControlsState extends State<DesktopVideoControls> {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (_showVolume)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 44),
+                        child: _buildVolumePanel(),
+                      ),
+                    ),
+                  ),
                 _buildSeekBar(context, position, duration),
                 Row(
                   children: [
                     _buildPlayButton(),
+                    _buildVolumeButton(),
                     if (widget.showPlaylistControls) ...[
                       IconButton(
                         tooltip: '上一曲',
@@ -196,6 +226,103 @@ class _DesktopVideoControlsState extends State<DesktopVideoControls> {
         );
       },
     );
+  }
+
+  Widget _buildVolumeButton() {
+    return StreamBuilder<double>(
+      stream: _player.stream.volume,
+      initialData: _player.state.volume,
+      builder: (context, snapshot) {
+        final volume = snapshot.data ?? _player.state.volume;
+        return IconButton(
+          tooltip: '音量',
+          icon: Icon(_volumeIcon(volume), color: Colors.white),
+          onPressed: _toggleVolumePanel,
+        );
+      },
+    );
+  }
+
+  /// 垂直音量控件：点击定位、上下拖动调整。
+  Widget _buildVolumePanel() {
+    return StreamBuilder<double>(
+      stream: _player.stream.volume,
+      initialData: _player.state.volume,
+      builder: (context, snapshot) {
+        final volume = (snapshot.data ?? _player.state.volume).clamp(0.0, 100.0);
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${volume.round()}%',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              _buildVolumeTrack(volume),
+              const SizedBox(height: 6),
+              Icon(_volumeIcon(volume), color: Colors.white70, size: 18),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  static const double _volumeTrackHeight = 120;
+
+  Widget _buildVolumeTrack(double volume) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (details) =>
+          _setVolume((1 - details.localPosition.dy / _volumeTrackHeight) * 100),
+      onVerticalDragUpdate: (details) {
+        // 向上拖动（dy 为负）增大音量
+        _setVolume(
+          _player.state.volume - details.delta.dy / _volumeTrackHeight * 100,
+        );
+      },
+      child: SizedBox(
+        width: 28,
+        height: _volumeTrackHeight,
+        child: Center(
+          child: Container(
+            width: 6,
+            height: _volumeTrackHeight,
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: (volume / 100).clamp(0.0, 1.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _setVolume(double value) {
+    unawaited(_player.setVolume(value.clamp(0.0, 100.0)));
+  }
+
+  IconData _volumeIcon(double volume) {
+    if (volume <= 0) return Icons.volume_off;
+    if (volume < 50) return Icons.volume_down;
+    return Icons.volume_up;
   }
 
   Widget _buildSeekBar(

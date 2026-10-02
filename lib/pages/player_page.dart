@@ -79,6 +79,14 @@ class _PlayerPageState extends State<PlayerPage> {
   /// 片尾自动连播每次播放只触发一次
   bool _outroTriggered = false;
 
+  /// 快捷键 seek 方向提示：-1 快退 / 1 快进；null 为隐藏
+  int? _seekHint;
+  Timer? _seekHintTimer;
+
+  /// 快捷键音量调整提示（0-100）；null 为隐藏
+  double? _volumeHint;
+  Timer? _volumeHintTimer;
+
   String get _rateLabel {
     final rate = _settings.rate;
     return rate == rate.roundToDouble() ? '${rate.toInt()}x' : '${rate}x';
@@ -197,6 +205,8 @@ class _PlayerPageState extends State<PlayerPage> {
     _progressTimer?.cancel();
     _chapterTimer?.cancel();
     _statsTimer?.cancel();
+    _seekHintTimer?.cancel();
+    _volumeHintTimer?.cancel();
     // dispose 发生在帧收尾的锁树阶段，先对播放状态取快照
     final position = _player.state.position;
     final duration = _player.state.duration;
@@ -346,10 +356,93 @@ class _PlayerPageState extends State<PlayerPage> {
         ? Duration.zero
         : (duration > Duration.zero && target > duration ? duration : target);
     await _player.seek(clamped);
+    _showSeekHint(offset.isNegative ? -1 : 1);
   }
 
   Future<void> _volumeBy(double delta) async {
-    await _player.setVolume((_player.state.volume + delta).clamp(0.0, 100.0));
+    final next = (_player.state.volume + delta).clamp(0.0, 100.0);
+    await _player.setVolume(next);
+    _showVolumeHint(next);
+  }
+
+  /// 显示 seek 方向提示（左快退 / 右快进），短暂后自动隐藏。
+  void _showSeekHint(int direction) {
+    if (!mounted) return;
+    setState(() => _seekHint = direction);
+    _seekHintTimer?.cancel();
+    _seekHintTimer = Timer(const Duration(milliseconds: 600), () {
+      if (mounted) setState(() => _seekHint = null);
+    });
+  }
+
+  /// 显示音量调整提示，短暂后自动隐藏。
+  void _showVolumeHint(double volume) {
+    if (!mounted) return;
+    setState(() => _volumeHint = volume);
+    _volumeHintTimer?.cancel();
+    _volumeHintTimer = Timer(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _volumeHint = null);
+    });
+  }
+
+  IconData _volumeIcon(double volume) {
+    if (volume <= 0) return Icons.volume_off;
+    if (volume < 50) return Icons.volume_down;
+    return Icons.volume_up;
+  }
+
+  /// 键盘 seek 提示：半透明三角，左快退 / 右快进，可点按再次跳转。
+  Widget _seekHintOverlay(int direction) {
+    final rewind = direction < 0;
+    return Align(
+      alignment: rewind ? Alignment.centerLeft : Alignment.centerRight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: GestureDetector(
+          onTap: () =>
+              unawaited(_seekBy(Duration(seconds: rewind ? -10 : 10))),
+          child: Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.35),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              rewind ? Icons.fast_rewind : Icons.fast_forward,
+              color: Colors.white.withValues(alpha: 0.85),
+              size: 40,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 键盘音量提示：图标 + 百分比。
+  Widget _volumeHintOverlay(double volume) {
+    return IgnorePointer(
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(_volumeIcon(volume), color: Colors.white, size: 30),
+              const SizedBox(height: 6),
+              Text(
+                '${volume.round()}%',
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// 截取当前帧（含字幕）保存到图片目录。
@@ -776,6 +869,12 @@ class _PlayerPageState extends State<PlayerPage> {
                     ),
                   ),
                 ),
+              // 快捷键 seek 提示：左快退 / 右快进
+              if (_seekHint != null)
+                Positioned.fill(child: _seekHintOverlay(_seekHint!)),
+              // 快捷键音量调整提示
+              if (_volumeHint != null)
+                Positioned.fill(child: _volumeHintOverlay(_volumeHint!)),
             ],
           ),
         ),
